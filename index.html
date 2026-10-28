@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PrepPlan Demo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2f7d5b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PrepPlan">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#faf8f4;--card:#fff;--tx:#1d1d1b;--mut:#6b6a64;--bd:#e3dfd6;--ac:#2f7d5b;--acbg:#e4f2ea;--acfg:#14432f;--er:#a32d2d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1b19;--card:#262623;--tx:#f1efe8;--mut:#a5a39a;--bd:#3a3a36;--ac:#5fc08f;--acbg:#1f3a2d;--acfg:#c5ecd6;--er:#f09595}}
+:root[data-theme="dark"]{--bg:#1b1b19;--card:#262623;--tx:#f1efe8;--mut:#a5a39a;--bd:#3a3a36;--ac:#5fc08f;--acbg:#1f3a2d;--acfg:#c5ecd6;--er:#f09595}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:24px;margin:0 0 4px;font-weight:600}h2{font-size:18px;margin:0 0 10px;font-weight:600}
+.sub{color:var(--mut);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:14px;color:var(--mut);margin:12px 0 4px}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>div{flex:1;min-width:140px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{background:var(--acbg);color:var(--acfg);border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;display:flex;align-items:center;gap:4px}
+.chip button{all:unset;cursor:pointer;padding:0 6px;font-size:16px}
+button.p{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:10px 16px;font:inherit;font-weight:500;cursor:pointer}
+button.s{background:transparent;color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:10px 16px;font:inherit;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+.err{color:var(--er);font-size:14px;margin-top:8px}.mut{color:var(--mut);font-size:14px}
+.meal{border-top:1px solid var(--bd);padding:12px 0}.meal:first-child{border-top:0}
+.meal h3{margin:0;font-size:16px}.tag{font-size:13px;color:var(--mut)}
+ol{margin:6px 0 0;padding-left:20px}
+.day{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--bd)}.day:first-child{border-top:0}.day b{min-width:44px}
+.g label{display:flex;gap:8px;align-items:center;color:var(--tx);font-size:16px;margin:4px 0}
+.g input{width:auto}.g input:checked+span{text-decoration:line-through;color:var(--mut)}
+.wrap{overflow-x:auto}
+#picker{margin-top:12px}details{border-top:1px solid var(--bd);padding:6px 0}summary{cursor:pointer;font-size:14px;color:var(--mut);padding:4px 0}
+.pk-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
+.pk{border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:999px;padding:4px 12px;font:inherit;font-size:14px;cursor:pointer}
+.pk.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.chip.low{background:transparent;border:1px dashed var(--er);color:var(--er)}
+</style></head><body><main>
+<h1>PrepPlan</h1>
+<p class="sub">Tell me what's in your kitchen. Get meal ideas, a weekly plan, and a grocery list.</p>
+
+<div class="card">
+<h2>1. What do you have?</h2>
+<div class="row"><input id="ing" placeholder="Type an ingredient, press Enter" aria-label="Ingredient"></div>
+<div class="chips" id="chips"></div>
+<p class="mut" style="margin:8px 0 0">Have an ingredient but not enough for the week? Tap <b>low?</b> on it and it goes on your grocery list.</p>
+<div id="picker"></div>
+<div class="row">
+<div><label for="who">Cooking for</label><select id="who"><option>A busy single parent</option><option>A college student on a budget</option><option>Myself</option><option>A couple</option></select></div>
+<div><label for="time">Max time</label><select id="time"><option>20 minutes</option><option selected>30 minutes</option><option>45 minutes</option><option>1 hour</option></select></div>
+</div>
+<label for="diet">Diet or dislikes (optional)</label><input id="diet" placeholder="e.g. vegetarian, no nuts, kid-friendly">
+<div style="margin-top:14px"><button class="p" id="go">Suggest meals</button></div>
+<div class="err" id="e1"></div>
+</div>
+
+<div class="card" id="res" hidden><h2>2. Meal ideas</h2><div id="meals"></div>
+<label for="serv">Servings per meal</label><select id="serv"><option>1</option><option>2</option><option selected>4</option><option>6</option></select>
+<div style="margin-top:12px"><button class="s" id="plan">Build a 5-day plan and grocery list</button></div><div class="err" id="e2"></div></div>
+
+<div class="card" id="pl" hidden><h2>3. Your week</h2><div id="days"></div>
+<h2 style="margin-top:18px">Grocery list</h2><div class="g" id="groc"></div>
+<div style="margin-top:12px"><button class="s" id="dl">Save as text file</button></div></div>
+
+<div class="card" style="text-align:center"><h2>All done?</h2><p class="mut" style="margin:0 0 12px">Clear everything and start fresh with a new set of ingredients.</p><button class="p" id="reset">Reset</button></div>
+
+<p class="mut">Ideas are AI-generated. Check allergens and food safety yourself.</p>
+</main>
+<script>
+var items=[],low=[],lastMeals=[],lastPlan=null;
+var $=function(i){return document.getElementById(i)};
+function esc(s){var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML}
+function drawChips(){syncPicker();var c=$('chips');c.innerHTML='';items.forEach(function(t,i){var d=document.createElement('span');var isLow=low.indexOf(t)>=0;d.className='chip'+(isLow?' low':'');d.appendChild(document.createTextNode(t));var l=document.createElement('button');l.textContent=isLow?'low ✓':'low?';l.title='Mark as running low: add more to the grocery list';l.setAttribute('aria-pressed',isLow?'true':'false');l.style.fontSize='12px';l.onclick=function(){var k=low.indexOf(t);if(k<0)low.push(t);else low.splice(k,1);drawChips()};d.appendChild(l);var b=document.createElement('button');b.textContent='×';b.setAttribute('aria-label','Remove '+t);b.onclick=function(){items.splice(i,1);var k=low.indexOf(t);if(k>=0)low.splice(k,1);drawChips()};d.appendChild(b);c.appendChild(d)})}
+var CATS={"Poultry & eggs":["Chicken breast","Chicken thighs","Whole chicken","Ground chicken","Ground turkey","Turkey sausage","Eggs"],"Meat & seafood":["Ground beef","Steak","Pork chops","Bacon","Sausage","Ham","Salmon","White fish","Shrimp","Canned tuna"],"Vegetables":["Onion","Garlic","Bell pepper","Carrots","Broccoli","Spinach","Tomatoes","Potatoes","Sweet potatoes","Zucchini","Mushrooms","Cabbage","Corn","Green beans","Celery"],"Fruit":["Lemon","Lime","Apples","Bananas","Avocado"],"Grains & pasta":["Rice","Pasta","Bread","Tortillas","Oats","Quinoa","Couscous","Noodles"],"Dairy":["Milk","Butter","Cheddar","Mozzarella","Parmesan","Yogurt","Cream cheese","Sour cream"],"Beans & canned":["Black beans","Chickpeas","Lentils","Tofu","Canned tomatoes","Tomato sauce","Chicken broth","Coconut milk","Peanut butter","Flour"],"Herbs & spices":["Garlic powder","Onion powder","Paprika","Cumin","Chili powder","Oregano","Basil","Thyme","Italian seasoning","Curry powder","Cinnamon","Red pepper flakes","Bay leaves","Ginger"],"Sauces & oils":["Olive oil","Soy sauce","Hot sauce","Ketchup","Mustard","Mayo","Vinegar","Honey","BBQ sauce","Salsa"]};
+function buildPicker(){var p=$('picker');p.innerHTML='';Object.keys(CATS).forEach(function(k,i){var d=document.createElement('details');if(i===0)d.open=true;var s=document.createElement('summary');s.textContent=k;d.appendChild(s);var w=document.createElement('div');w.className='pk-wrap';CATS[k].forEach(function(n){var b=document.createElement('button');b.type='button';b.className='pk';b.textContent=n;b.setAttribute('aria-pressed','false');b.onclick=function(){var j=items.indexOf(n);if(j<0)items.push(n);else items.splice(j,1);drawChips()};w.appendChild(b)});d.appendChild(w);p.appendChild(d)})}
+function syncPicker(){document.querySelectorAll('#picker .pk').forEach(function(b){var on=items.indexOf(b.textContent)>=0;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
+buildPicker();
+$('ing').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addIng()}});
+$('ing').addEventListener('blur',addIng);
+function addIng(){var v=$('ing').value.split(',');v.forEach(function(x){x=x.trim();if(x&&items.indexOf(x)<0)items.push(x)});$('ing').value='';drawChips()}
+function ctx(){return 'Cooking for: '+$('who').value+'. Max cooking time: '+$('time').value+'. Diet/dislikes: '+($('diet').value||'none')+'. Ingredients on hand: '+items.join(', ')+'.'}
+async function callAI(prompt){
+  var res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt})});
+  var data=null;try{data=await res.json()}catch(e){}
+  if(!res.ok){var err=new Error((data&&data.error)||'Request failed');err.code=data&&data.code;throw err}
+  return data}
+async function run(btn,err,prompt){
+  err.textContent='';btn.disabled=true;var old=btn.textContent;btn.textContent='Thinking...';
+  try{return await callAI(prompt)}
+  catch(e){err.textContent=e&&e.code==='rate_limited'?'Too many requests. Wait a moment and try again.':e&&e.code==='missing_api_key'?'AI is not set up yet on this server. Add your Anthropic API key to the server and restart it.':e&&e.code==='unauthorized'?'The API key was rejected. Check the key on the server and restart it.':(e&&e.message)||'Something went wrong. Try again.';return null}
+  finally{btn.disabled=false;btn.textContent=old}}
+$('go').onclick=async function(){
+  addIng();if(items.length<2){$('e1').textContent='Add at least two ingredients first.';return}
+  var r=await run($('go'),$('e1'),'You are a practical home-cooking assistant. '+ctx()+' Suggest 4 realistic, genuinely tasty meals, assuming basic staples (oil, salt, pepper, water) are available. Do NOT try to use every ingredient: each meal should use only the subset that works well together, and meals should differ from each other (for example, one built around rice and another around pasta rather than combining both in a single dish). Never force clashing ingredients into one recipe. Return ONLY JSON: {"meals":[{"name":"","time":"","uses":["ingredients from the list"],"missing":["few extra items needed"],"steps":["short step"]}]}. Max 5 steps each.');
+  if(!r||!r.meals)return;lastMeals=r.meals;
+  $('meals').innerHTML=r.meals.map(function(m){return '<div class="meal"><h3>'+esc(m.name)+' <span class="tag">· '+esc(m.time)+'</span></h3><div class="tag">Uses: '+esc((m.uses||[]).join(', '))+(m.missing&&m.missing.length?' · Need: '+esc(m.missing.join(', ')):'')+'</div><ol>'+(m.steps||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join('')+'</ol></div>'}).join('');
+  $('res').hidden=false;$('res').scrollIntoView({behavior:'smooth'})};
+$('plan').onclick=async function(){
+  var r=await run($('plan'),$('e2'),'You are a meal planner. '+ctx()+' Build a 5-day dinner plan that uses the ingredients on hand first, reuses ingredients across days to cut waste, and suits the audience. Each dinner only needs a sensible subset of the ingredients; do not combine clashing ingredients (such as rice and pasta) in one meal, and vary the main starch and protein across the week. Candidate meals: '+lastMeals.map(function(m){return m.name}).join(', ')+' (use or replace). Return ONLY JSON: {"days":[{"day":"Mon","meal":"","note":""}],"grocery":[{"item":"","qty":"","low":false}]}. Servings per meal: '+$('serv').value+'. Items on hand marked LOW (not enough for the week): '+(low.filter(function(x){return items.indexOf(x)>=0}).join(', ')||'none')+'. The grocery list must include (a) items NOT on hand and (b) every LOW item with the extra quantity to buy for the week, setting low to true for those. Do not list on-hand items that are not marked LOW.');
+  if(!r||!r.days)return;lastPlan=r;
+  $('days').innerHTML=r.days.map(function(d){return '<div class="day"><b>'+esc(d.day)+'</b><div>'+esc(d.meal)+(d.note?'<div class="tag">'+esc(d.note)+'</div>':'')+'</div></div>'}).join('');
+  $('groc').innerHTML=(r.grocery||[]).map(function(g){return '<label><input type="checkbox"><span>'+esc(g.item)+' <span class="tag">'+esc(g.qty)+(g.low?' · you have some, need more':'')+'</span></span></label>'}).join('');
+  $('pl').hidden=false;$('pl').scrollIntoView({behavior:'smooth'})};
+$('dl').onclick=async function(){
+  if(!lastPlan)return;var t='MEAL PLAN\n'+lastPlan.days.map(function(d){return d.day+': '+d.meal}).join('\n')+'\n\nGROCERY LIST\n'+(lastPlan.grocery||[]).map(function(g){return '[ ] '+g.item+' ('+g.qty+')'+(g.low?' - need more':'')}).join('\n');
+  var blob=new Blob([t],{type:'text/plain'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='meal-plan.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
+$('reset').onclick=function(){items=[];low=[];lastMeals=[];lastPlan=null;$('ing').value='';$('diet').value='';$('who').selectedIndex=0;$('time').selectedIndex=1;$('serv').selectedIndex=2;$('meals').innerHTML='';$('days').innerHTML='';$('groc').innerHTML='';$('e1').textContent='';$('e2').textContent='';$('res').hidden=true;$('pl').hidden=true;$('dl').textContent='Save as text file';drawChips();document.querySelectorAll('#picker details').forEach(function(d,i){d.open=i===0});window.scrollTo({top:0,behavior:'smooth'})};
+</script></body></html>
